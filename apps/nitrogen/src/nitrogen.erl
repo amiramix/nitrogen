@@ -6,6 +6,8 @@
 -export ([init_request/2, handler/2, run/0, start_link/1, start_link/2,
          do/1, out/1, do_mochiweb/2]).
 
+-include_lib ("yaws/include/yaws.hrl").
+
 init_request(RequestBridge, ResponseBridge) ->
     wf_context:init_context(RequestBridge, ResponseBridge).
 
@@ -21,6 +23,8 @@ handling_module() ->
     Root.
 
 start_link(Mod) ->
+		io:format("nitrogen.erl:start_link~n"),
+		io:format("nitrogen.erl http_server:~p, docroot:~p~n", [Mod:http_server(), Mod:docroot()]),
     {ok, App} = application:get_application(),
     application:set_env(App, nitrogen_handler_module, Mod),
     start_link(Mod:http_server(), Mod).  % get config data from the .app file
@@ -41,39 +45,39 @@ start_link(inets, Mod) ->
     link(Pid),
     {ok, Pid};
 
-start_link(mochiweb, Mod) -> 
-    Options = [{port,   Mod:serverport()} 
-               ,{name,  Mod:servername()} 
-               ,{ip,    Mod:serverip()} 
-               ,{loop,  fun(Req) -> do_mochiweb(Req, Mod) end} 
-              ], 
-    {ok, Pid} = mochiweb_http:start(Options), 
+%start_link(mochiweb, Mod) -> 
+%    Options = [{port,   Mod:serverport()} 
+%               ,{name,  Mod:servername()} 
+%               ,{ip,    Mod:serverip()} 
+%               ,{loop,  fun(Req) -> do_mochiweb(Req, Mod) end} 
+%              ], 
+%    {ok, Pid} = mochiweb_http:start(Options), 
+%
+%    link(Pid), 
+%    {ok, Pid}. 
 
-    link(Pid), 
-    {ok, Pid}. 
-
-%start_link(yaws, Mod) -> 
-%        SC = #sconf { 
-%                appmods     = [{"/", ?MODULE}], 
-%                docroot     = Mod:docroot(), 
-%                port        = Mod:serverport(), 
-%                servername  = Mod:servername(), 
-%                listen      = Mod:serverip() 
-%        }, 
-%        DefaultGC = yaws_config:make_default_gconf(false, redhot2), 
-%        GC = DefaultGC#gconf { 
-%                logdir = redhot2:log_dir(), 
-%                cache_refresh_secs = 5 
-%        },
-% 
-%        % Following code adopted from yaws:start_embedded/4. 
-%        % This will need to change if Yaws changes!!! 
-%        ok = application:set_env(yaws, embedded, true), 
-%        {ok, Pid} = yaws_sup:start_link(), 
-%        yaws_config:add_yaws_soap_srv(GC), 
-%        SCs = yaws_config:add_yaws_auth([SC]), 
-%        yaws_api:setconf(GC, [SCs]), 
-%        {ok, Pid}. 
+start_link(yaws, Mod) -> 
+        SC = #sconf { 
+                appmods     = [{"/", ?MODULE}], 
+                docroot     = Mod:docroot(), 
+                port        = Mod:serverport(), 
+                servername  = Mod:servername(), 
+                listen      = Mod:serverip() 
+        }, 
+        DefaultGC = yaws_config:make_default_gconf(false, Mod), 
+        GC = DefaultGC#gconf { 
+                logdir = Mod:log_dir(), 
+                cache_refresh_secs = 5 
+        },
+ 
+        % Following code adopted from yaws:start_embedded/4. 
+        % This will need to change if Yaws changes!!! 
+        ok = application:set_env(yaws, embedded, true), 
+        {ok, Pid} = yaws_sup:start_link(), 
+        yaws_config:add_yaws_soap_srv(GC), 
+        SCs = yaws_config:add_yaws_auth([SC]), 
+        yaws_api:setconf(GC, [SCs]), 
+        {ok, Pid}. 
 
 % Inets handler
 do(Info) -> 
