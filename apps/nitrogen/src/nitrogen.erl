@@ -17,14 +17,11 @@ handler(Module, Config) ->
 run() -> 
     wf_core:run().
 
-
 handling_module() ->
     {ok, Root} = application:get_env(nitrogen_handler_module),
     Root.
 
 start_link(Mod) ->
-		io:format("nitrogen.erl:start_link~n"),
-		io:format("nitrogen.erl http_server:~p, docroot:~p~n", [Mod:http_server(), Mod:docroot()]),
     {ok, App} = application:get_application(),
     application:set_env(App, nitrogen_handler_module, Mod),
     start_link(Mod:http_server(), Mod).  % get config data from the .app file
@@ -92,10 +89,8 @@ simple_bridge:make_response(inets_response_bridge, Info),
 
 % Yaws handler 
 out(Info) -> 
-    RequestBridge = simple_bridge:make_request(yaws_request_bridge, 
-Info), 
-    ResponseBridge = simple_bridge:make_response(yaws_response_bridge, 
-Info), 
+    RequestBridge = simple_bridge:make_request(yaws_request_bridge, Info), 
+    ResponseBridge = simple_bridge:make_response(yaws_response_bridge, Info), 
     nitrogen:init_request(RequestBridge, ResponseBridge), 
     Mod = handling_module(),
     Mod:handlers(),
