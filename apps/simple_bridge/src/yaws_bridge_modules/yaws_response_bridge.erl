@@ -25,7 +25,7 @@ build_response(_Arg, Res) ->
                 kvl3("content-type", Res#response.headers),
                 kvl3("Content-Type", Res#response.headers),
                 kvl3("CONTENT-TYPE", Res#response.headers),
-                "text/html"
+                "text/html; charset=UTF-8"
             ]),
 
             % Send the yaws response...
