@@ -10,13 +10,39 @@
 
 %%%  Empty tags %%%
 
+emit_tag(TagName, Props) when
+			TagName =/= 'area',
+			TagName =/= 'base',
+			TagName =/= 'br',
+			TagName =/= 'col',
+			TagName =/= 'command',
+			TagName =/= 'embed',
+			TagName =/= 'hr',
+			TagName =/= 'img',
+			TagName =/= 'input',
+			TagName =/= 'keygen',
+			TagName =/= 'link',
+			TagName =/= 'meta',
+			TagName =/= 'param',
+			TagName =/= 'source',
+			TagName =/= 'wbr' ->
+    STagName = wf:to_list(TagName),
+    [
+        "<",
+        STagName,
+        write_props(Props),
+        "></",
+        STagName,
+        ">"
+    ];
+
 emit_tag(TagName, Props) ->
     STagName = wf:to_list(TagName),
     [
         "<",
         STagName,
         write_props(Props),
-        "/>"
+        " />"
     ].
 
 %%% Tags with child content %%%
